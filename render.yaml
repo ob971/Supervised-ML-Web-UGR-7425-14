@@ -3,8 +3,15 @@ services:
   - type: web
     name: ml-classification-backend
     rootDir: backend
-    buildCommand: pip install -r requirements.txt  ✅ Correct (no cd backend)
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT  ✅ Correct (no cd backend)
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.0
+
+  # Frontend - Static Site
+  - type: static
+    name: ml-classification-frontend
+    rootDir: frontend
+    buildCommand: echo "Building static site..."
+    publishDirectory: .
