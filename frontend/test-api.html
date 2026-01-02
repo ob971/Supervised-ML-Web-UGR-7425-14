@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Connection Test</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        button { padding: 10px 20px; margin: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Backend API Connection Test</h1>
+    <div id="results"></div>
+    <button onclick="testHealth()">Test /health</button>
+    <button onclick="testPredict()">Test /predict</button>
+    <button onclick="testCORS()">Test CORS</button>
+
+    <script>
+        const API_URL = 'http://localhost:8080';
+        const results = document.getElementById('results');
+
+        function addResult(test, success, message) {
+            const div = document.createElement('div');
+            div.className = `test ${success ? 'success' : 'error'}`;
+            div.innerHTML = `<strong>${test}:</strong> ${message}`;
+            results.appendChild(div);
+        }
+
+        async function testHealth() {
+            try {
+                const response = await fetch(`${API_URL}/health`);
+                const data = await response.json();
+                addResult('Health Check', true, `Status: ${data.status}, Models: ${data.models_loaded}`);
+            } catch (error) {
+                addResult('Health Check', false, error.message);
+            }
+        }
+
+        async function testPredict() {
+            try {
+                const response = await fetch(`${API_URL}/predict`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        age: 29,
+                        glucose: 85,
+                        bp: 66,
+                        skin_thickness: 29,
+                        insulin: 0,
+                        bmi: 26.6,
+                        diabetes_pedigree: 0.351,
+                        pregnancies: 0
+                    })
+                });
+                const data = await response.json();
+                addResult('Predict', true, `LR: ${data.logistic_regression.prediction}, DT: ${data.decision_tree.prediction}`);
+            } catch (error) {
+                addResult('Predict', false, error.message);
+                console.error('Predict error:', error);
+            }
+        }
+
+        async function testCORS() {
+            try {
+                const response = await fetch(`${API_URL}/health`, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Origin': 'http://localhost:3000',
+                        'Access-Control-Request-Method': 'POST'
+                    }
+                });
+                addResult('CORS', true, `Status: ${response.status}`);
+            } catch (error) {
+                addResult('CORS', false, error.message);
+            }
+        }
+
+        // Auto-run tests on load
+        window.onload = () => {
+            testHealth();
+            setTimeout(testPredict, 1000);
+        };
+    </script>
+</body>
+</html>
+
